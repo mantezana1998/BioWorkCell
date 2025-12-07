@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  liquid_handlers:
+    build: ./devices/LiquidHandler
+    ports:
+      - "8001:8001"
+
+  thermocyclers:
+    build: ./devices/Thermocycler
+    ports:
+      - "8002:8002"
+
+  barcode_scanner:
+    build: ./devices/BarcodeScanner
+    ports:
+      - "8003:8003"
+
+  manager:
+    build: ./manager
+    depends_on:
+      - liquid_handlers
+      - thermocyclers
+      - barcode_scanner
+    command: ["python", "workflow.py"]
+    ports:
+      - "8010:8010"
+
+  dashboard:
+    image: tiangolo/uvicorn-gunicorn:python3.10
+    volumes:
+      - ./dashboard:/app
+    command: ["streamlit", "run", "dashboard.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
+    ports:
+      - "8501:8501"
